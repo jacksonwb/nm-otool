@@ -6,22 +6,25 @@
 #    By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/03 12:06:08 by jbeall            #+#    #+#              #
-#    Updated: 2019/06/28 11:59:45 by jbeall           ###   ########.fr        #
+#    Updated: 2019/07/03 12:10:46 by jbeall           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 #==================================== GENERAL =================================#
 
-NAME = new-bin
+NAME = ft_nm
 CC = clang
-CPPFLAGS = -Wall -Wextra -Werror #-g
+CPPFLAGS = -Wall -Wextra -Werror -g
 LDFLAGS = -pipe -flto=full #-fsanitize=address,undefined
-OPT = -O3 -flto=full -march=native #-fsanitize=address,undefined
+# OPT = -O3 -flto=full -march=native #-fsanitize=address,undefined
 SUB = libft
 
 #=================================== SOURCES ==================================#
 
-LIST = main
+LIST = nm \
+nm_handle_64 \
+nm_handle_32
+
 VPATH = src
 SRC = $(addsuffix .c, $(LIST))
 
