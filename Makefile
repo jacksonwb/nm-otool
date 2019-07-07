@@ -6,13 +6,14 @@
 #    By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/03 12:06:08 by jbeall            #+#    #+#              #
-#    Updated: 2019/07/03 12:10:46 by jbeall           ###   ########.fr        #
+#    Updated: 2019/07/06 20:50:20 by jbeall           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 #==================================== GENERAL =================================#
 
-NAME = ft_nm
+NAME1 = ft_nm
+NAME2 = ft_otool
 CC = clang
 CPPFLAGS = -Wall -Wextra -Werror -g
 LDFLAGS = -pipe -flto=full #-fsanitize=address,undefined
@@ -21,18 +22,25 @@ SUB = libft
 
 #=================================== SOURCES ==================================#
 
-LIST = nm \
+VPATH = src/nm src/otool
+
+LIST1 = nm \
 nm_handle_64 \
 nm_handle_32
 
-VPATH = src
-SRC = $(addsuffix .c, $(LIST))
+SRC1 = $(addsuffix .c, $(LIST1))
+
+LIST2 = otool
+SRC2 = $(addsuffix .c, $(LIST2))
 
 #=================================== OBJECTS ==================================#
 
-OBJ_DIR = .obj/
-OBJ = $(addprefix $(OBJ_DIR), $(SRC:.c=.o))
-DEP = $(OBJ:%.o=%.d)
+OBJ_DIR = obj/
+OBJ1 = $(addprefix $(OBJ_DIR), $(SRC1:.c=.o))
+DEP1 = $(OBJ1:%.o=%.d)
+
+OBJ2 = $(addprefix $(OBJ_DIR), $(SRC2:.c=.o))
+DEP2 = $(OBJ2:%.o=%.d)
 
 #================================== LIBRARIES =================================#
 
@@ -50,16 +58,15 @@ INC = -I $(LIB_INC) -I $(INC_DIR)
 COM_COLOR   = \033[92m
 NO_COLOR    = \033[m
 
-#TEXT
 COM_STRING  = "$(NAME) compilation successful"
 CLEAN_OBJ	= "cleaned $(NAME) objects"
 CLEAN_NAME	= "cleaned $(NAME) binary"
 
 #===================================== RULES ==================================#
 
-all: libft $(NAME)
+all: libft $(NAME1) $(NAME2)
 
-$(NAME): $(OBJ)
+$(NAME1): $(OBJ1)
 	@for s in $(SUB);\
 	do\
 		make -sC $$s;\
@@ -68,9 +75,19 @@ $(NAME): $(OBJ)
 	@$(CC) $(LDFLAGS) $^ $(LIBFT) -o $@
 	@echo "$(COM_COLOR) $(COM_STRING) $(NO_COLOR)"
 
--include $(DEP)
+$(NAME2): $(OBJ2)
+	@for s in $(SUB);\
+	do\
+		make -sC $$s;\
+	done
+	@echo "linking..."
+	@$(CC) $(LDFLAGS) $^ $(LIBFT) -o $@
+	@echo "$(COM_COLOR) $(COM_STRING) $(NO_COLOR)"
 
-$(OBJ_DIR)%.o: $(SRC_DIR)%.c obj
+-include $(DEP1)
+-include $(DEP2)
+
+$(OBJ_DIR)%.o: %.c | obj
 	@printf "compiling: %s\n" $<
 	@$(CC) $(CPPFLAGS) $(OPT) $(INC) -MMD -c $< -o $@
 
@@ -90,7 +107,8 @@ fclean: clean
 	do\
 		make -sC $$s fclean;\
 	done
-	@rm -f $(NAME)
+	@rm -f $(NAME1)
+	@rm -f $(NAME2)
 	@echo "$(COM_COLOR)$(CLEAN_NAME)$(NO_COLOR)"
 
 re: fclean all

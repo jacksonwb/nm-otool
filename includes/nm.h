@@ -6,7 +6,7 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/01 21:02:43 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/03 17:56:28 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/06 21:14:09 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,7 @@
 # include <mach-o/fat.h>
 # include "libft.h"
 # include "ft_printf.h"
-
-# define SEG64 struct segment_command_64
-# define SEC64 struct section_64
-# define SEG32 struct segment_command
-# define SEC32 struct section
+# include "ft_nm_otool.h"
 
 # define S_TEXT 0
 # define S_DATA 1
