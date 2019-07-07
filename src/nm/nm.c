@@ -6,23 +6,11 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/02 12:53:47 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/06 21:05:53 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/07 12:32:16 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "nm.h"
-
-void usage(void)
-{
-	ft_printf("usage nm file1 ...\n");
-	exit(0);
-}
-
-void err_exit(char *str)
-{
-	perror(str);
-	exit(EXIT_FAILURE);
-}
 
 char get_sym_type(uint8_t n_type, uint8_t sect, uint32_t *type)
 {
@@ -114,39 +102,6 @@ void handle_archive(void *ptr, char *path, size_t len)
 	}
 }
 
-void print_cpu_32(struct fat_arch *arch, char *path, int big)
-{
-	char cpu_type[10];
-	uint32_t cputype = SWAP32(arch->cputype, big);
-
-	if (cputype == CPU_TYPE_I386)
-		ft_strcpy(cpu_type, "i386");
-	else if (cputype == CPU_TYPE_POWERPC)
-		ft_strcpy(cpu_type, "ppc");
-	else if (cputype == CPU_TYPE_X86_64)
-		ft_strcpy(cpu_type, "x86_64");
-	ft_printf("\n%s (for architecture %s):\n", path, cpu_type);
-}
-
-uint32_t find_native_arch(struct fat_arch *arch, uint32_t nfat_arch, int *solo, int big)
-{
-	uint32_t i;
-	uint32_t cputype;
-
-	i = 0;
-	while (nfat_arch > 1 && i < nfat_arch)
-	{
-		cputype = SWAP32((arch[i].cputype), big);
-		if (cputype == CPU_TYPE_X86_64)
-		{
-			*solo = 1;
-			return(i);
-		}
-		i++;
-	}
-	return (0);
-}
-
 void handle_fat_32(void *ptr, char *path, size_t len, int big)
 {
 	struct fat_header* header;
@@ -165,7 +120,10 @@ void handle_fat_32(void *ptr, char *path, size_t len, int big)
 	while (i < nfat_arch)
 	{
 		if (nfat_arch > 1 && !solo)
+		{
+			ft_printf("\n");
 			print_cpu_32(&arch[i], path, big);
+		}
 		nm(ptr + (SWAP32(arch[i].offset, big)), path, SWAP32(arch[i].size, big));
 		if (solo)
 			break;
@@ -186,20 +144,6 @@ void nm(void *ptr, char *path, size_t len)
 		handle_fat_32(ptr, path, len, (magic == FAT_CIGAM));
 	else if (!ft_strncmp(ptr, ARMAG, SARMAG))
 		handle_archive(ptr, path, len);
-}
-
-uint32_t swap_uint32(uint32_t num)
-{
-	uint32_t new;
-	int i;
-
-	i = 0;
-	while (i < 4)
-	{
-		((uint8_t*)&new)[3 - (3 - i)] = ((uint8_t*)&num)[3 - i];
-		i++;
-	}
-	return (new);
 }
 
 int main(int ac, char **av)

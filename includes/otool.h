@@ -6,7 +6,7 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/06 20:46:58 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/06 21:14:31 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/07 12:14:32 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,5 +25,7 @@
 # include "libft.h"
 # include "ft_printf.h"
 # include "ft_nm_otool.h"
+
+void otool(void *ptr, char *path, size_t len);
 
 #endif

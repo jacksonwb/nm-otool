@@ -6,7 +6,7 @@
 #    By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/03 12:06:08 by jbeall            #+#    #+#              #
-#    Updated: 2019/07/06 20:50:20 by jbeall           ###   ########.fr        #
+#    Updated: 2019/07/07 10:45:42 by jbeall           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,16 +22,18 @@ SUB = libft
 
 #=================================== SOURCES ==================================#
 
-VPATH = src/nm src/otool
+VPATH = src/nm src/otool src
 
 LIST1 = nm \
 nm_handle_64 \
 nm_handle_32
-
 SRC1 = $(addsuffix .c, $(LIST1))
 
 LIST2 = otool
 SRC2 = $(addsuffix .c, $(LIST2))
+
+LISTC = utils
+SRCC = $(addsuffix .c, $(LISTC))
 
 #=================================== OBJECTS ==================================#
 
@@ -41,6 +43,9 @@ DEP1 = $(OBJ1:%.o=%.d)
 
 OBJ2 = $(addprefix $(OBJ_DIR), $(SRC2:.c=.o))
 DEP2 = $(OBJ2:%.o=%.d)
+
+OBJC = $(addprefix $(OBJ_DIR), $(SRCC:.c=.o))
+DEPC = $(OBJC:%.o=%.d)
 
 #================================== LIBRARIES =================================#
 
@@ -66,7 +71,7 @@ CLEAN_NAME	= "cleaned $(NAME) binary"
 
 all: libft $(NAME1) $(NAME2)
 
-$(NAME1): $(OBJ1)
+$(NAME1): $(OBJ1) $(OBJC)
 	@for s in $(SUB);\
 	do\
 		make -sC $$s;\
@@ -75,7 +80,7 @@ $(NAME1): $(OBJ1)
 	@$(CC) $(LDFLAGS) $^ $(LIBFT) -o $@
 	@echo "$(COM_COLOR) $(COM_STRING) $(NO_COLOR)"
 
-$(NAME2): $(OBJ2)
+$(NAME2): $(OBJ2) $(OBJC)
 	@for s in $(SUB);\
 	do\
 		make -sC $$s;\
@@ -86,6 +91,7 @@ $(NAME2): $(OBJ2)
 
 -include $(DEP1)
 -include $(DEP2)
+-include $(DEPC)
 
 $(OBJ_DIR)%.o: %.c | obj
 	@printf "compiling: %s\n" $<

@@ -6,21 +6,57 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/06 20:46:48 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/06 21:40:36 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/07 12:26:46 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "otool.h"
 
-void print_section_64(SEC64 *sec)
+void print_section_64(SEC64 *sec, void* ptr)
 {
-	void *ptr;
+	uint8_t *text;
+	uint32_t i;
 
-	ptr = sec + sizeof(SEC64);
-	ft_printf("%x", *(uint32_t*)ptr);
+	text = ptr + sec->offset;
+	i = 0;
+	ft_printf("Contents of (%s,%s) section\n", sec->segname, sec->sectname);
+	while (i < sec->size)
+	{
+		if (i % 16 == 0)
+			ft_printf("%.16llx	", sec->addr + i);
+		ft_printf("%.2x ", text[i]);
+		if (i % 16 == 15)
+			ft_printf("\n");
+		i++;
+	}
+	if ((i - 1) % 16 != 15)
+		ft_printf("\n");
 }
 
-void print_segment_64(SEG64 *seg)
+void print_section_32(SEC32 *sec, void* ptr, int big)
+{
+	uint8_t *text;
+	uint32_t i;
+
+	text = ptr + (SWAP32(sec->offset, big));
+	i = 0;
+	ft_printf("Contents of (%s,%s) section\n", sec->segname, sec->sectname);
+	while (i < (SWAP32(sec->size, big)))
+	{
+		if (i % 16 == 0)
+			ft_printf("%.8llx	", (SWAP32(sec->addr, big)) + i);
+		ft_printf("%.2x", text[i]);
+		if (!big || (big && i % 4 == 3))
+			ft_printf(" ");
+		if (i % 16 == 15)
+			ft_printf("\n");
+		i++;
+	}
+	if ((i - 1) % 16 != 15)
+		ft_printf("\n");
+}
+
+void print_segment_64(SEG64 *seg, void* ptr)
 {
 	SEC64 *section;
 	uint32_t i;
@@ -31,7 +67,28 @@ void print_segment_64(SEG64 *seg)
 	{
 		if (!ft_strcmp(section[i].segname, SEG_TEXT) && !ft_strcmp(section[i].sectname, SECT_TEXT))
 		{
-			print_section_64(&section[i]);
+			print_section_64(&section[i], ptr);
+			break;
+		}
+		i++;
+	}
+}
+
+void print_segment_32(SEG32 *seg, void* ptr, int big)
+{
+	SEC32 *section;
+	uint32_t nsects;
+	uint32_t i;
+
+	section = (void*)seg + sizeof(SEG32);
+	nsects = SWAP32(seg->nsects, big);
+	i = 0;
+	while (i < nsects)
+	{
+		if (!ft_strcmp(section[i].segname, SEG_TEXT) && !ft_strcmp(section[i].sectname, SECT_TEXT))
+		{
+			print_section_32(&section[i], ptr, big);
+			break;
 		}
 		i++;
 	}
@@ -51,11 +108,54 @@ void handle_64(void *ptr, int endian)
 	{
 		if (lc->cmd == LC_SEGMENT_64)
 		{
-			print_segment_64((SEG64*)lc);
-			break;
+			print_segment_64((SEG64*)lc, ptr);
 		}
 		i++;
 		lc = (void*)lc + lc->cmdsize;
+	}
+}
+
+void handle_32(void *ptr, int endian)
+{
+	struct mach_header *header;
+	struct load_command *lc;
+	uint32_t i;
+
+	header = (struct mach_header*)ptr;
+	lc = ptr + sizeof(struct mach_header);
+	i = 0;
+	while (i < (SWAP32(header->ncmds, endian)))
+	{
+		if ((SWAP32((lc->cmd), endian)) == LC_SEGMENT)
+			print_segment_32((SEG32*)lc, ptr, endian);
+		i++;
+		lc = (void*)lc + (SWAP32(lc->cmdsize, endian));
+	}
+}
+
+void handle_fat_32(void *ptr, char *path, size_t len, int big)
+{
+	struct fat_header* header;
+	struct fat_arch* arch;
+	uint32_t nfat_arch;
+	uint32_t i;
+	int solo;
+
+	header = ptr;
+	i = 0;
+	(void)len;
+	solo = 0;
+	arch = (void*)header + sizeof(struct fat_header);
+	nfat_arch = SWAP32(header->nfat_arch, big);
+	i = find_native_arch(arch, nfat_arch, &solo, big);
+	while (i < nfat_arch)
+	{
+		if (nfat_arch > 1 && !solo)
+			print_cpu_32(&arch[i], path, big);
+		otool(ptr + (SWAP32(arch[i].offset, big)), path, SWAP32(arch[i].size, big));
+		if (solo)
+			break;
+		i++;
 	}
 }
 
@@ -68,10 +168,10 @@ void otool(void *ptr, char *path, size_t len)
 	magic = *(int*)ptr;
 	if (magic == MH_MAGIC_64)
 		handle_64(ptr, 0);
-	// else if (magic == MH_MAGIC || magic == MH_CIGAM)
-	// 	handle_32(ptr, (magic == MH_CIGAM));
-	// else if (magic == FAT_MAGIC || magic == FAT_CIGAM)
-	// 	handle_fat_32(ptr, path, len, (magic == FAT_CIGAM));
+	else if (magic == MH_MAGIC || magic == MH_CIGAM)
+		handle_32(ptr, (magic == MH_CIGAM));
+	else if (magic == FAT_MAGIC || magic == FAT_CIGAM)
+		handle_fat_32(ptr, path, len, (magic == FAT_CIGAM));
 	// else if (!ft_strncmp(ptr, ARMAG, SARMAG))
 	// 	handle_archive(ptr, path, len);
 }
@@ -88,8 +188,7 @@ int main(int ac, char **av)
 	i = 1;
 	while (i < ac)
 	{
-		if (ac > 2)
-			ft_printf("\n%s:\n", av[i]);
+		ft_printf("%s:\n", av[i]);
 		if ((fd = open(av[i], O_RDONLY)) < 0)
 			err_exit(av[i]);
 		ft_memset(&buf, 0, sizeof(buf));

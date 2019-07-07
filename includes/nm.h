@@ -6,7 +6,7 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/01 21:02:43 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/06 21:14:09 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/07 12:12:27 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@
 # define S_BSS 2
 # define S_TOTAL 3
 
-# define SWAP32(i, big) big ? swap_uint32(i) : i
 # define SORT_STRING32(i, big) strings + (SWAP32(table[i].n_un.n_strx, big))
 # define SORT_STRING(i) strings + table[i].n_un.n_strx
 
@@ -45,7 +44,6 @@ typedef struct	s_printbundle
 
 void nm(void *ptr, char *path, size_t len);
 char get_sym_type(uint8_t n_type, uint8_t sect, uint32_t *type);
-uint32_t swap_uint32(uint32_t num);
 
 /*
 **64 Bit Handlers
