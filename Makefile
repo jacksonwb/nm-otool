@@ -6,7 +6,7 @@
 #    By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/03 12:06:08 by jbeall            #+#    #+#              #
-#    Updated: 2019/07/07 10:45:42 by jbeall           ###   ########.fr        #
+#    Updated: 2019/07/07 14:51:52 by jbeall           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,10 +26,12 @@ VPATH = src/nm src/otool src
 
 LIST1 = nm \
 nm_handle_64 \
-nm_handle_32
+nm_handle_32 \
+nm_extra
 SRC1 = $(addsuffix .c, $(LIST1))
 
-LIST2 = otool
+LIST2 = otool \
+otool_helper
 SRC2 = $(addsuffix .c, $(LIST2))
 
 LISTC = utils

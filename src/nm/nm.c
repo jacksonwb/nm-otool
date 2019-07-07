@@ -6,37 +6,18 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/02 12:53:47 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/07 12:32:16 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/07 15:12:44 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "nm.h"
 
-char get_sym_type(uint8_t n_type, uint8_t sect, uint32_t *type)
+void	handle_32(void *ptr, int endian)
 {
-	if ((n_type & N_TYPE) == N_UNDF && (n_type & N_EXT))
-		return ('U');
-	else if ((n_type & N_TYPE) == N_INDR)
-		return ('I');
-	else if ((n_type & N_TYPE) == N_ABS)
-		return (n_type & N_EXT ? 'A' : 'a');
-	else if ((n_type & N_TYPE) == N_SECT && sect == type[S_TEXT])
-		return (n_type & N_EXT ? 'T' : 't');
-	else if ((n_type & N_TYPE) == N_SECT && sect == type[S_DATA])
-		return (n_type & N_EXT ? 'D' : 'd');
-	else if ((n_type & N_TYPE) == N_SECT && sect == type[S_BSS])
-		return (n_type & N_EXT ? 'B' : 'b');
-	else if ((n_type & N_TYPE) == N_SECT)
-		return (n_type & N_EXT ? 'S' : 's');
-	return (0);
-}
-
-void handle_32(void *ptr, int endian)
-{
-	struct mach_header *header;
-	struct load_command *lc;
-	uint32_t i;
-	uint32_t type[4];
+	struct mach_header	*header;
+	struct load_command	*lc;
+	uint32_t			i;
+	uint32_t			type[4];
 
 	header = (struct mach_header*)ptr;
 	lc = ptr + sizeof(struct mach_header);
@@ -53,12 +34,12 @@ void handle_32(void *ptr, int endian)
 	}
 }
 
-void handle_64(void *ptr, int endian)
+void	handle_64(void *ptr, int endian)
 {
-	struct mach_header_64 *header;
-	struct load_command *lc;
-	uint32_t i;
-	uint32_t type[4];
+	struct mach_header_64	*header;
+	struct load_command		*lc;
+	uint32_t				i;
+	uint32_t				type[4];
 
 	(void)endian;
 	header = (struct mach_header_64*)ptr;
@@ -76,39 +57,13 @@ void handle_64(void *ptr, int endian)
 	}
 }
 
-void handle_archive(void *ptr, char *path, size_t len)
+void	handle_fat_32(void *ptr, char *path, size_t len, int big)
 {
-	struct ar_hdr *ar;
-	char *str;
-	uint32_t size;
-	void* start;
-
-	start = ptr;
-	ar = ptr + SARMAG;
-	ptr = (void*)ar + ft_atoi(ar->ar_size) + sizeof(struct ar_hdr);
-	while (ptr)
-	{
-		ar = ptr;
-		if (ptr >= start + len || ft_atoi(ar->ar_size) <= 0)
-			break;
-		str = ptr + sizeof(struct ar_hdr);
-		ft_printf("\n%s(%s):\n", path, str);
-		size = ft_strlen(str);
-		while(!*(str + size))
-			size++;
-		ptr = (void*)str + size;
-		nm(ptr, path, len);
-		ptr = (void*)ar + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
-	}
-}
-
-void handle_fat_32(void *ptr, char *path, size_t len, int big)
-{
-	struct fat_header* header;
-	struct fat_arch* arch;
-	uint32_t nfat_arch;
-	uint32_t i;
-	int solo;
+	struct fat_header	*header;
+	struct fat_arch		*arch;
+	uint32_t			nfat_arch;
+	uint32_t			i;
+	int					solo;
 
 	header = ptr;
 	i = 0;
@@ -116,22 +71,22 @@ void handle_fat_32(void *ptr, char *path, size_t len, int big)
 	solo = 0;
 	arch = (void*)header + sizeof(struct fat_header);
 	nfat_arch = SWAP32(header->nfat_arch, big);
-	i = find_native_arch(arch, nfat_arch, &solo, big);
-	while (i < nfat_arch)
+	i = find_native_arch(arch, nfat_arch, &solo, big) - 1;
+	while (++i < nfat_arch)
 	{
 		if (nfat_arch > 1 && !solo)
 		{
 			ft_printf("\n");
 			print_cpu_32(&arch[i], path, big);
 		}
-		nm(ptr + (SWAP32(arch[i].offset, big)), path, SWAP32(arch[i].size, big));
+		nm(ptr + (SWAP32(arch[i].offset, big)), path,
+			SWAP32(arch[i].size, big));
 		if (solo)
-			break;
-		i++;
+			break ;
 	}
 }
 
-void nm(void *ptr, char *path, size_t len)
+void	nm(void *ptr, char *path, size_t len)
 {
 	unsigned magic;
 
@@ -146,17 +101,17 @@ void nm(void *ptr, char *path, size_t len)
 		handle_archive(ptr, path, len);
 }
 
-int main(int ac, char **av)
+int		main(int ac, char **av)
 {
-	int i;
-	int fd;
-	void *ptr;
-	struct stat buf;
+	int			i;
+	int			fd;
+	void		*ptr;
+	struct stat	buf;
 
 	if (ac < 2)
 		usage();
-	i = 1;
-	while (i < ac)
+	i = 0;
+	while (++i < ac)
 	{
 		if (ac > 2)
 			ft_printf("\n%s:\n", av[i]);
@@ -165,12 +120,12 @@ int main(int ac, char **av)
 		ft_memset(&buf, 0, sizeof(buf));
 		if (fstat(fd, &buf) < 0)
 			err_exit("fstat");
-		if ((ptr = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
+		if ((ptr = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0))
+			== MAP_FAILED)
 			err_exit("mmap");
 		nm(ptr, av[i], buf.st_size);
 		if (munmap(ptr, buf.st_size) == -1)
 			err_exit(av[i]);
-		i++;
 	}
 	return (0);
 }

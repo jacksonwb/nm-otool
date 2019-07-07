@@ -6,12 +6,12 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/06 20:46:58 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/07 12:14:32 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/07 15:20:36 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef OTOOL_H
-#define OTOOL_H
+# define OTOOL_H
 
 # include <fcntl.h>
 # include <stdlib.h>
@@ -27,5 +27,10 @@
 # include "ft_nm_otool.h"
 
 void otool(void *ptr, char *path, size_t len);
+void print_section_64(SEC64 *sec, void *ptr);
+void print_section_32(SEC32 *sec, void *ptr, int big);
+void print_segment_64(SEG64 *seg, void *ptr);
+void print_segment_32(SEG32 *seg, void *ptr, int big);
+void handle_archive(void *ptr, char *path, size_t len);
 
 #endif

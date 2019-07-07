@@ -6,12 +6,12 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/06 21:12:25 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/07 12:14:03 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/07 15:21:42 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef FT_NM_OTOOL
-#define FT_NM_OTOOL
+#ifndef FT_NM_OTOOL_H
+# define FT_NM_OTOOL_H
 
 # include <stdlib.h>
 # include <stdio.h>
@@ -28,10 +28,11 @@
 # define SEC32 struct section
 # define SWAP32(i, big) big ? swap_uint32(i) : i
 
-void usage(void);
-void err_exit(char *str);
-uint32_t swap_uint32(uint32_t num);
-uint32_t find_native_arch(struct fat_arch *arch, uint32_t nfat_arch, int *solo, int big);
-void print_cpu_32(struct fat_arch *arch, char *path, int big);
+void		usage(void);
+void		err_exit(char *str);
+uint32_t	swap_uint32(uint32_t num);
+uint32_t	find_native_arch(struct fat_arch *arch, uint32_t nfat_arch,
+	int *solo, int big);
+void		print_cpu_32(struct fat_arch *arch, char *path, int big);
 
 #endif

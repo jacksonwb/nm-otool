@@ -6,43 +6,18 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/03 11:26:53 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/06 15:53:16 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/07 15:02:12 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "nm.h"
 
-void print_symbols_64(struct nlist_64 *table, char *strings, uint32_t nsyms, uint32_t *type)
+void			sort_symbols_64_ptr(struct nlist_64 *table, char *strings,
+	uint32_t nsyms)
 {
-	uint32_t i;
-	char c;
-
-	i = 0;
-	while (i < nsyms)
-	{
-		c = get_sym_type(table[i].n_type, table[i].n_sect, type);
-		if (*(strings + table[i].n_un.n_strx) && c)
-		{
-			if (c != 'U' &&  c != 'I')
-				ft_printf("%.16llx", table[i].n_value);
-			else
-				ft_printf("% 16c", ' ');
-			ft_printf(" %c", c);
-			if (c == 'I')
-				ft_printf(" %s (indirect for %s)\n", strings + table[i].n_un.n_strx,
-					strings + table[i].n_un.n_strx);
-			else
-				ft_printf(" %s\n", strings + table[i].n_un.n_strx);
-		}
-		i++;
-	}
-}
-
-void sort_symbols_64_ptr(struct nlist_64 *table, char *strings, uint32_t nsyms)
-{
-	uint32_t i;
-	uint32_t j;
-	struct nlist_64 tmp;
+	uint32_t		i;
+	uint32_t		j;
+	struct nlist_64	tmp;
 
 	i = 1;
 	j = 0;
@@ -64,11 +39,12 @@ void sort_symbols_64_ptr(struct nlist_64 *table, char *strings, uint32_t nsyms)
 	}
 }
 
-void sort_symbols_64(struct nlist_64 *table, char *strings, uint32_t nsyms)
+void			sort_symbols_64(struct nlist_64 *table, char *strings,
+	uint32_t nsyms)
 {
-	uint32_t i;
-	uint32_t j;
-	struct nlist_64 tmp;
+	uint32_t		i;
+	uint32_t		j;
+	struct nlist_64	tmp;
 
 	i = 1;
 	j = 0;
@@ -89,10 +65,10 @@ void sort_symbols_64(struct nlist_64 *table, char *strings, uint32_t nsyms)
 	}
 }
 
-struct nlist_64 *cpy_symbols_64(struct nlist_64* table, uint32_t nsyms)
+struct nlist_64	*cpy_symbols_64(struct nlist_64 *table, uint32_t nsyms)
 {
-	struct nlist_64 *cpy;
-	uint32_t i;
+	struct nlist_64	*cpy;
+	uint32_t		i;
 
 	cpy = malloc(sizeof(struct nlist_64) * nsyms);
 	i = 0;
@@ -104,12 +80,13 @@ struct nlist_64 *cpy_symbols_64(struct nlist_64* table, uint32_t nsyms)
 	return (cpy);
 }
 
-void symbols_64(struct symtab_command *sym, void *ptr, uint32_t *type)
+void			symbols_64(struct symtab_command *sym, void *ptr,
+	uint32_t *type)
 {
-	char *strings;
-	struct nlist_64 *table;
-	struct nlist_64 *cpy;
-	uint32_t i;
+	char			*strings;
+	struct nlist_64	*table;
+	struct nlist_64	*cpy;
+	uint32_t		i;
 
 	table = ptr + sym->symoff;
 	strings = ptr + sym->stroff;
@@ -121,20 +98,23 @@ void symbols_64(struct symtab_command *sym, void *ptr, uint32_t *type)
 	free(cpy);
 }
 
-void segment_64(SEG64 *seg, uint32_t *type)
+void			segment_64(SEG64 *seg, uint32_t *type)
 {
-	SEC64 *section;
-	uint32_t i;
+	SEC64		*section;
+	uint32_t	i;
 
 	section = (void*)seg + sizeof(SEG64);
 	i = 0;
 	while (i < seg->nsects)
 	{
-		if (!ft_strcmp(section[i].segname, SEG_TEXT) && !ft_strcmp(section[i].sectname, SECT_TEXT))
+		if (!ft_strcmp(section[i].segname, SEG_TEXT) &&
+			!ft_strcmp(section[i].sectname, SECT_TEXT))
 			type[S_TEXT] = type[S_TOTAL] + 1;
-		else if (!ft_strcmp(section[i].segname, SEG_DATA) && !ft_strcmp(section[i].sectname, SECT_DATA))
+		else if (!ft_strcmp(section[i].segname, SEG_DATA) &&
+			!ft_strcmp(section[i].sectname, SECT_DATA))
 			type[S_DATA] = type[S_TOTAL] + 1;
-		else if (!ft_strcmp(section[i].segname, SEG_DATA) && !ft_strcmp(section[i].sectname, SECT_BSS))
+		else if (!ft_strcmp(section[i].segname, SEG_DATA) &&
+			!ft_strcmp(section[i].sectname, SECT_BSS))
 			type[S_BSS] = type[S_TOTAL] + 1;
 		type[S_TOTAL]++;
 		i++;

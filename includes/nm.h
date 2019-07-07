@@ -6,7 +6,7 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/01 21:02:43 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/07 12:12:27 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/07 15:27:09 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,29 +38,36 @@
 
 typedef struct	s_printbundle
 {
-	uint32_t nsyms;
-	int big;
+	uint32_t	nsyms;
+	int			big;
 }				t_printbundle;
 
-void nm(void *ptr, char *path, size_t len);
-char get_sym_type(uint8_t n_type, uint8_t sect, uint32_t *type);
+void			nm(void *ptr, char *path, size_t len);
+char			get_sym_type(uint8_t n_type, uint8_t sect, uint32_t *type);
+void			handle_archive(void *ptr, char *path, size_t len);
 
 /*
 **64 Bit Handlers
 */
-void print_symbols_64(struct nlist_64 *table, char *strings, uint32_t nsyms, uint32_t *type);
-void sort_symbols_64(struct nlist_64 *table, char *strings, uint32_t nsyms);
-struct nlist_64 *cpy_symbols_64(struct nlist_64* table, uint32_t nsyms);
-void symbols_64(struct symtab_command *sym, void *ptr, uint32_t *type);
-void segment_64(SEG64 *seg, uint32_t *type);
+void			print_symbols_64(struct nlist_64 *table, char *strings,
+	uint32_t nsyms, uint32_t *type);
+void			sort_symbols_64(struct nlist_64 *table, char *strings,
+	uint32_t nsyms);
+struct nlist_64	*cpy_symbols_64(struct nlist_64 *table, uint32_t nsyms);
+void			symbols_64(struct symtab_command *sym, void *ptr,
+	uint32_t *type);
+void			segment_64(SEG64 *seg, uint32_t *type);
 
 /*
 **32 Bit Handlers
 */
-void print_symbols_32(struct nlist *table, char *strings, uint32_t *type, t_printbundle bundle);
-void sort_symbols_32(struct nlist *table, char *strings, uint32_t nsyms, int big);
-struct nlist *cpy_symbols_32(struct nlist* table, uint32_t nsyms);
-void symbols_32(struct symtab_command *sym, void *ptr, uint32_t *type, int big);
-void segment_32(SEG32 *seg, uint32_t *type, int big);
+void			print_symbols_32(struct nlist *table, char *strings,
+	uint32_t *type, t_printbundle bundle);
+void			sort_symbols_32(struct nlist *table, char *strings,
+	uint32_t nsyms, int big);
+struct nlist	*cpy_symbols_32(struct nlist *table, uint32_t nsyms);
+void			symbols_32(struct symtab_command *sym, void *ptr,
+	uint32_t *type, int big);
+void			segment_32(SEG32 *seg, uint32_t *type, int big);
 
-# endif
+#endif

@@ -6,99 +6,17 @@
 /*   By: jbeall <jbeall@student.42.us.org>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/06 20:46:48 by jbeall            #+#    #+#             */
-/*   Updated: 2019/07/07 12:26:46 by jbeall           ###   ########.fr       */
+/*   Updated: 2019/07/07 15:19:23 by jbeall           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "otool.h"
 
-void print_section_64(SEC64 *sec, void* ptr)
+void	handle_64(void *ptr, int endian)
 {
-	uint8_t *text;
-	uint32_t i;
-
-	text = ptr + sec->offset;
-	i = 0;
-	ft_printf("Contents of (%s,%s) section\n", sec->segname, sec->sectname);
-	while (i < sec->size)
-	{
-		if (i % 16 == 0)
-			ft_printf("%.16llx	", sec->addr + i);
-		ft_printf("%.2x ", text[i]);
-		if (i % 16 == 15)
-			ft_printf("\n");
-		i++;
-	}
-	if ((i - 1) % 16 != 15)
-		ft_printf("\n");
-}
-
-void print_section_32(SEC32 *sec, void* ptr, int big)
-{
-	uint8_t *text;
-	uint32_t i;
-
-	text = ptr + (SWAP32(sec->offset, big));
-	i = 0;
-	ft_printf("Contents of (%s,%s) section\n", sec->segname, sec->sectname);
-	while (i < (SWAP32(sec->size, big)))
-	{
-		if (i % 16 == 0)
-			ft_printf("%.8llx	", (SWAP32(sec->addr, big)) + i);
-		ft_printf("%.2x", text[i]);
-		if (!big || (big && i % 4 == 3))
-			ft_printf(" ");
-		if (i % 16 == 15)
-			ft_printf("\n");
-		i++;
-	}
-	if ((i - 1) % 16 != 15)
-		ft_printf("\n");
-}
-
-void print_segment_64(SEG64 *seg, void* ptr)
-{
-	SEC64 *section;
-	uint32_t i;
-
-	section = (void*)seg + sizeof(SEG64);
-	i = 0;
-	while (i < seg->nsects)
-	{
-		if (!ft_strcmp(section[i].segname, SEG_TEXT) && !ft_strcmp(section[i].sectname, SECT_TEXT))
-		{
-			print_section_64(&section[i], ptr);
-			break;
-		}
-		i++;
-	}
-}
-
-void print_segment_32(SEG32 *seg, void* ptr, int big)
-{
-	SEC32 *section;
-	uint32_t nsects;
-	uint32_t i;
-
-	section = (void*)seg + sizeof(SEG32);
-	nsects = SWAP32(seg->nsects, big);
-	i = 0;
-	while (i < nsects)
-	{
-		if (!ft_strcmp(section[i].segname, SEG_TEXT) && !ft_strcmp(section[i].sectname, SECT_TEXT))
-		{
-			print_section_32(&section[i], ptr, big);
-			break;
-		}
-		i++;
-	}
-}
-
-void handle_64(void *ptr, int endian)
-{
-	struct mach_header_64 *header;
-	struct load_command *lc;
-	uint32_t i;
+	struct mach_header_64	*header;
+	struct load_command		*lc;
+	uint32_t				i;
 
 	(void)endian;
 	header = (struct mach_header_64*)ptr;
@@ -115,11 +33,11 @@ void handle_64(void *ptr, int endian)
 	}
 }
 
-void handle_32(void *ptr, int endian)
+void	handle_32(void *ptr, int endian)
 {
-	struct mach_header *header;
-	struct load_command *lc;
-	uint32_t i;
+	struct mach_header	*header;
+	struct load_command	*lc;
+	uint32_t			i;
 
 	header = (struct mach_header*)ptr;
 	lc = ptr + sizeof(struct mach_header);
@@ -133,13 +51,13 @@ void handle_32(void *ptr, int endian)
 	}
 }
 
-void handle_fat_32(void *ptr, char *path, size_t len, int big)
+void	handle_fat_32(void *ptr, char *path, size_t len, int big)
 {
-	struct fat_header* header;
-	struct fat_arch* arch;
-	uint32_t nfat_arch;
-	uint32_t i;
-	int solo;
+	struct fat_header	*header;
+	struct fat_arch		*arch;
+	uint32_t			nfat_arch;
+	uint32_t			i;
+	int					solo;
 
 	header = ptr;
 	i = 0;
@@ -152,14 +70,15 @@ void handle_fat_32(void *ptr, char *path, size_t len, int big)
 	{
 		if (nfat_arch > 1 && !solo)
 			print_cpu_32(&arch[i], path, big);
-		otool(ptr + (SWAP32(arch[i].offset, big)), path, SWAP32(arch[i].size, big));
+		otool(ptr + (SWAP32(arch[i].offset, big)), path,
+			SWAP32(arch[i].size, big));
 		if (solo)
-			break;
+			break ;
 		i++;
 	}
 }
 
-void otool(void *ptr, char *path, size_t len)
+void	otool(void *ptr, char *path, size_t len)
 {
 	unsigned magic;
 
@@ -172,16 +91,16 @@ void otool(void *ptr, char *path, size_t len)
 		handle_32(ptr, (magic == MH_CIGAM));
 	else if (magic == FAT_MAGIC || magic == FAT_CIGAM)
 		handle_fat_32(ptr, path, len, (magic == FAT_CIGAM));
-	// else if (!ft_strncmp(ptr, ARMAG, SARMAG))
-	// 	handle_archive(ptr, path, len);
+	else if (!ft_strncmp(ptr, ARMAG, SARMAG))
+		handle_archive(ptr, path, len);
 }
 
-int main(int ac, char **av)
+int		main(int ac, char **av)
 {
-	int i;
-	int fd;
-	void *ptr;
-	struct stat buf;
+	int			i;
+	int			fd;
+	void		*ptr;
+	struct stat	buf;
 
 	if (ac < 2)
 		usage();
@@ -194,7 +113,8 @@ int main(int ac, char **av)
 		ft_memset(&buf, 0, sizeof(buf));
 		if (fstat(fd, &buf) < 0)
 			err_exit("fstat");
-		if ((ptr = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
+		if ((ptr = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) ==
+			MAP_FAILED)
 			err_exit("mmap");
 		otool(ptr, av[i], buf.st_size);
 		if (munmap(ptr, buf.st_size) == -1)
