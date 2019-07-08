@@ -11,6 +11,6 @@ This has been built for and tested on macOS only
 run `make`
 
 ### Usage
-`nm file`
+`./ft_nm file`
 
-`otool file`
+`./ft_otool file`
